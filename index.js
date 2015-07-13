@@ -48,6 +48,7 @@ var Infinite = React.addons.InfiniteScroll = React.createClass({
   getDefaultProps: function () {
     return {
       data: [],
+      keyAttr: 'id',
       maxColumns: 100,
       align: 'center',
       transition: '0.5s ease',
@@ -65,12 +66,13 @@ var Infinite = React.addons.InfiniteScroll = React.createClass({
       hasMore: true,
 
       loadMore: function () {},
-      threshold: 250
+      threshold: 5000
     };
   },
 
   propTypes: {
     data: React.PropTypes.arrayOf(React.PropTypes.object).isRequired,
+    keyAttr: React.PropTypes.string,
     maxColumns: React.PropTypes.number,
     align: React.PropTypes.string,
     displayWidth: React.PropTypes.number,
@@ -144,13 +146,13 @@ var Infinite = React.addons.InfiniteScroll = React.createClass({
       windowWidth: this.props.displayWidth,
       windowHeight: global.innerHeight,
       elementWidth: elementTWidth ,
-      elementHeight: Math.floor((elementTWidth/16)*9), 
+      elementHeight: Math.floor((elementTWidth/16)*9),
       scrollTop: global.scrollY || 0
     });
   },
   componentWillReceiveProps:function(nextProps){
     if(JSON.stringify(nextProps.data) !== JSON.stringify(this.props.data) ){
-      
+
       this.setState({hasMore:true})
     }
   },
@@ -158,12 +160,12 @@ var Infinite = React.addons.InfiniteScroll = React.createClass({
     if(this.props.displayWidth !== this.state.windowWidth){
       this.onResize();
     }
-    
+
     this.attachScrollListener();
   },
 
   scrollListener: function () {
-    
+
     if(this.state.loaded){
       var el = this.getDOMNode();
       var scrollTop = (window.pageYOffset !== undefined) ? window.pageYOffset : (document.documentElement || document.body.parentNode || document.body).scrollTop;
@@ -179,21 +181,21 @@ var Infinite = React.addons.InfiniteScroll = React.createClass({
   },
 
   attachScrollListener: function () {
-    
+
     if (!this.props.hasMore) {
       return;
     }
     if(this.state.hasMore){
-    
+
       window.addEventListener('scroll', this.scrollListener);
       this.scrollListener();
     }
     window.addEventListener('resize', this.scrollListener);
-    
+
   },
 
   detachScrollListener: function () {
-    
+
     if(this.state.hasMore){
       window.removeEventListener('scroll', this.scrollListener);
     }
@@ -201,16 +203,16 @@ var Infinite = React.addons.InfiniteScroll = React.createClass({
   },
 
   onScroll: function () {
-    
+
     var scrollTop = this.props.transitionable ? this.props.transitionable.get() : global.scrollY;
     if(this.state.scrollTop !== scrollTop){
-      
+
       this.setState({scrollTop: scrollTop});
     }
   },
 
   onResize: function () {
-    
+
 
     this.setState({windowWidth: this.props.displayWidth});
   },
@@ -284,8 +286,16 @@ var Infinite = React.addons.InfiniteScroll = React.createClass({
       if(index >= lowerLimit && index < higherLimit){
         var column = index % elementsPerRow;
         var row = Math.floor(index / elementsPerRow);
+        if(obj.slide){
+            key = obj.slide[this.props.keyAttr] || obj.slide['_'+this.props.keyAttr];
+        }else if(obj.url){
+            key = obj.url[this.props.keyAttr] || obj.url['_'+this.props.keyAttr];
+        }
+        else{
+            key = obj[this.props.keyAttr] || obj['_'+this.props.keyAttr];
+        }
         elementsToRender.push(SubContainer({
-          key: obj.id || obj._id,
+          key: key,
           transform: 'translate('+ (offset + column * (elementWidth + margin))  +'px, '+ (margin + row * (elementHeight + margin)) +'px)',
           width: elementWidth + 'px',
           height: elementHeight + 'px',
@@ -363,8 +373,15 @@ var Infinite = React.addons.InfiniteScroll = React.createClass({
       if(index >= lowerLimit && index < higherLimit){
         var row = index % elementsPerColumn;
         var column = Math.floor(index / elementsPerColumn);
+        if(obj.slide){
+            key = obj.slide[this.props.keyAttr] || obj.slide['_'+this.props.keyAttr];
+        }else if(obj.url){
+            key = obj.url[this.props.keyAttr] || obj.url['_'+this.props.keyAttr];
+        }else{
+            key = obj[this.props.keyAttr] || obj['_'+this.props.keyAttr];
+        }
         elementsToRender.push(SubContainer({
-          key: obj.id || obj._id,
+          key: key,
           transform: 'translate('+ (offset + column * (elementWidth + margin))  +'px, '+ (margin + row * (elementHeight + margin)) +'px)',
           width: elementWidth + 'px',
           height: elementHeight + 'px',
@@ -382,10 +399,10 @@ var Infinite = React.addons.InfiniteScroll = React.createClass({
     );
   },
 
-  
+
 
   render: function(){
-    
+
     if(this.state.loaded === false){
       return this.props.preRender
         ? React.createElement(this.props.containerComponent, {className: 'infinite-container', style: {fontSize: '0', position: 'relative', textAlign: this.props.align}},
