@@ -173,7 +173,7 @@ var Infinite = React.addons.InfiniteScroll = React.createClass({
         this.detachScrollListener();
         if(this.state.loadMore){
           this.props.loadMore(this.pageLoaded += 1);
-          this.setState({loadMore:false})
+          //this.setState({loadMore:false})
         }
       }
     }
@@ -185,7 +185,7 @@ var Infinite = React.addons.InfiniteScroll = React.createClass({
     if (!this.props.hasMore) {
       return;
     }
-    if(this.state.hasMore){
+    if(this.props.hasMore){
 
       window.addEventListener('scroll', this.scrollListener);
       this.scrollListener();
@@ -196,7 +196,7 @@ var Infinite = React.addons.InfiniteScroll = React.createClass({
 
   detachScrollListener: function () {
 
-    if(this.state.hasMore){
+    if(this.props.hasMore){
       window.removeEventListener('scroll', this.scrollListener);
     }
     window.removeEventListener('resize', this.scrollListener);
